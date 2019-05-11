@@ -17,6 +17,7 @@ _C.AGENT.TARGET_UPDATE = 10
 
 _C.MODEL = CN()
 _C.MODEL.OPTIMIZER = "sgd"
+_C.MODEL.INPUT_SIZE = (128, 128)
 
 
 def get_cfg_defaults():
