@@ -8,10 +8,10 @@ class DQN(models.Model):
     def __init__(self, outputs):
         super(DQN, self).__init__()
         self.conv1 = layers.Conv2D(filters=16, kernel_size=5, strides=2, padding="same")
-        self.conv2 = layers.Conv2D(filters=32, kernel_size=5, strides=2, padding="same")
-        self.conv3 = layers.Conv2D(filters=32, kernel_size=5, strides=2, padding="same")
         self.bn1 = layers.BatchNormalization(axis=-1)
+        self.conv2 = layers.Conv2D(filters=32, kernel_size=5, strides=2, padding="same")
         self.bn2 = layers.BatchNormalization(axis=-1)
+        self.conv3 = layers.Conv2D(filters=32, kernel_size=5, strides=2, padding="same")
         self.bn3 = layers.BatchNormalization(axis=-1)
         self.flat = layers.Flatten()
 
@@ -24,8 +24,7 @@ class DQN(models.Model):
         x = tf.nn.relu(self.bn3(self.conv3(x)))
         x = self.flat(x)
 
-        # use L1-loss, no need other activation for outputs
-        return self.head(x)
+        return tf.nn.softmax(self.head(x))
 
 if __name__ == "__main__":
     import numpy as np
