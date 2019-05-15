@@ -1,8 +1,10 @@
 """model..py
 Define model structure
 """
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import layers, models
+from tensorflow.python.keras import backend as K
 
 class DQN(models.Model):
     def __init__(self, outputs):
@@ -25,7 +27,7 @@ class DQN(models.Model):
         x = self.flat(x)
 
         #return tf.nn.softmax(self.head(x))
-        return self.head(x)
+        return self.head(x) # action value
 
 class Brain(models.Model):
     def __init__(self, policy_net, target_net, gamma):

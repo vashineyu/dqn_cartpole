@@ -1,10 +1,12 @@
 """agent.py
 Define how the agent act here
 """
-from .utils import Transition
+import random
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
-import random
+import numpy as np
+from .model import DQN, Brain
+from .utils import Transition
 
 class DqnAgent():
     def __init__(self, input_shape=(128, 128, 3), 

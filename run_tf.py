@@ -1,7 +1,7 @@
 """run.py
 Run the training script
 """
-
+import argparse
 import gym
 import os
 import numpy as np
@@ -10,9 +10,34 @@ from collections import deque
 
 from cartpole.config import get_cfg_defaults
 from cartpole.utils import ReplayMemory, screen_to_state
-from cartpole.model import DQN, Brain
+from cartpole.agent import DqnAgent
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--message', type=str, help="Must add message for recording this experiment info")
+parser.add_argument(
+    "--config-file",
+    default=None,
+    metavar="FILE",
+    help="path to config file",
+    type=str,
+    )
+parser.add_argument(
+        "opts",
+        help="Modify config options using the command-line",
+        default=None,
+        nargs=argparse.REMAINDER,
+    )
+args = parser.parse_args()
+
 
 cfg = get_cfg_defaults()
+if args.config_file is not None:
+    cfg.merge_from_file(args.config_file)
+if args.opts is not None:
+    cfg.merge_from_list(args.opts)
+cfg.freeze()
+print(cfg)
+
 devices = ",".join(str(i) for i in cfg.SYSTEM.DEVICES)
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = devices
@@ -56,7 +81,7 @@ for i_episode in range(cfg.AGENT.NUM_EPISODE):
         # Train the model
         agent.learn()
         
-        print("\rEpisode {}, Accumulated Reward: {:.3f}, remain time: {}".format(i_episode, total_rewards, t_counter), end='')
+        print("\rEpisode {}, Accumulated Reward: {:.3f}, elapse time: {}".format(i_episode, total_rewards, t_counter+1), end='')
         
         if is_done:
             break
