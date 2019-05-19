@@ -10,7 +10,7 @@ from collections import deque
 
 from cartpole.config import get_cfg_defaults
 from cartpole.utils import ReplayMemory, screen_to_state
-from cartpole.agent import DqnAgent
+from cartpole.agent_tf import DqnAgent
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--message', type=str, help="Must add message for recording this experiment info")

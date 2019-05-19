@@ -5,7 +5,7 @@ import random
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 import numpy as np
-from .model import DQN, Brain
+from .model_tf import DQN, Brain
 from .utils import Transition
 
 class DqnAgent():
