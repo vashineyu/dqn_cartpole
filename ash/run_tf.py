@@ -1,19 +1,18 @@
-# run_torch.py
-
+"""run.py
+Run the training script
+"""
 import argparse
 import gym
 import os
 import numpy as np
 from pyvirtualdisplay import Display
 from collections import deque
-import torch
 
 from cartpole.config import get_cfg_defaults
 from cartpole.utils import screen_to_state, process_env_state_image
-from cartpole.agent_torch import DqnAgent
+from cartpole.agent_tf import DqnAgent
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--message', type=str, help="Must add message for recording this experiment info")
 parser.add_argument(
     "--config-file",
     default=None,
@@ -41,38 +40,22 @@ devices = ",".join(str(i) for i in cfg.SYSTEM.DEVICES)
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = devices
 
-torch_devices = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-"""
-If you want to access the behind-the.scenes dynamics of a specific environment, 
-then you use the unwrapped property.
-"""
 display = Display(visible=0, size=cfg.SYSTEM.VIRTUAL_SCREEN)
 display.start()
 env = gym.make("CartPole-v0").unwrapped
 
-agent = DqnAgent(state_shape=cfg.MODEL.INPUT_SIZE if cfg.AGENT.CONV_MODE else env.observation_space.shape[0],
-                 action_space=env.action_space.n, 
-                 device=torch_devices,
-                 learning_rate=cfg.AGENT.LR,
-                 gamma=cfg.AGENT.GAMMA, 
-                 batch_size=cfg.AGENT.BATCH_SIZE, 
-                 memory_size=int(cfg.AGENT.NUM_MEMORY_CAPACITY),
-                 conv_mode=cfg.AGENT.CONV_MODE
-                 )
 
+agent = DqnAgent(input_shape=cfg.MODEL.INPUT_SIZE,
+                 action_space=env.action_space.n,
+                 gamma=cfg.AGENT.GAMMA,
+                 memory_capacity=cfg.AGENT.NUM_MEMORY_CAPACITY,
+                 batch_size=cfg.AGENT.BATCH_SIZE,
+                 conv_mode=False
+                 )
 scores = []
 scores_window = deque(maxlen=100)
 eps = cfg.AGENT.EPS_START
 for i_episode in range(cfg.AGENT.NUM_EPISODE):
-
-    """
-    # use difference of screen as state
-    env.reset()
-    last_screen = screen_to_state(env, target_size=cfg.MODEL.INPUT_SIZE[:2])
-    current_screen = screen_to_state(env, target_size=cfg.MODEL.INPUT_SIZE[:2])
-    state = current_screen - last_screen
-    """
     if cfg.AGENT.CONV_MODE:
         # use screen as state
         env.reset()
@@ -87,16 +70,7 @@ for i_episode in range(cfg.AGENT.NUM_EPISODE):
         
         vector_state, reward, is_done, _ = env.step(action)
         total_rewards += reward
-
-        """
-        # use difference of screen as state
-        last_screen = current_screen
-        current_screen = screen_to_state(env, target_size=cfg.MODEL.INPUT_SIZE[:2])
-        if not is_done:
-            next_state = current_screen - last_screen
-        else:
-            next_state = current_screen - current_screen
-        """
+        
         if cfg.AGENT.CONV_MODE:
             # use screen as state
             if not is_done:
@@ -108,19 +82,16 @@ for i_episode in range(cfg.AGENT.NUM_EPISODE):
             # if use vector mode (non-conv mode)
             next_state = vector_state
 
-        # Train the model
-        agent.step(state, action, next_state, reward, is_done*1)
-        #print("\rEpisode {}, Accumulated Reward: {:.3f}, remain time: {}".format(i_episode, total_rewards, t_counter), end='')
+        agent.step(state, action, next_state, reward, is_done * 1)
         state = next_state
         
         if is_done:
             break
+    print("")
     scores.append(total_rewards)
     scores_window.append(total_rewards)
-    print("\rEpisode {}, Accumulated Reward: {:.1f}, passed n mean reward: {:.1f}".format(i_episode, 
-                                                                                          total_rewards, 
+    print("\rEpisode {}, Accumulated Reward: {:.1f}, passed n mean reward: {:.1f}".format(i_episode,
+                                                                                          total_rewards,
                                                                                           np.mean(scores_window)
-                                                                                         ))
+                                                                                          ))
     eps = max(cfg.AGENT.EPS_END, eps*cfg.AGENT.EPS_DECAY)
-env.close()
-display.stop()

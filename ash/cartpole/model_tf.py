@@ -29,6 +29,18 @@ class DQN(models.Model):
         #return tf.nn.softmax(self.head(x))
         return self.head(x) # action value
 
+class DQN_Linear(models.Model):
+    def __init__(self, outputs):
+        super(DQN_Linear, self).__init__()
+        self.linear1 = layers.Dense(32)
+        self.linear2 = layers.Dense(64)
+        self.head = layers.Dense(outputs)
+
+    def call(self, x):
+        x = tf.nn.relu(self.linear1(x))
+        x = tf.nn.relu(self.linear2(x))
+        return self.head(x)
+
 class Brain(models.Model):
     def __init__(self, policy_net, target_net, gamma):
         super(Brain, self).__init__()
@@ -60,7 +72,8 @@ class Brain(models.Model):
         self.add_loss(loss)
         """
         return target, estimate
-    
+
+
 class LossLayer(layers.Layer):
     def __init__(self, **kwargs):
         super(LossLayer, self).__init__(**kwargs)
